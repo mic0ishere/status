@@ -1,0 +1,45 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+.body {
+  background-color: #0d1627;
+}
+
+.up {
+  color: rgba(0, 255, 98, 1);
+  text-shadow: 0px 0px 30px rgba(0, 255, 98, 0.5) !important;
+}
+
+.seems-down {
+  color: rgba(204, 255, 85, 1);
+  text-shadow: 0px 0px 30px rgba(204, 255, 85, 0.5) !important;
+}
+
+.down {
+  color: rgba(223, 74, 74, 1);
+  text-shadow: 0px 0px 30px rgba(223, 74, 74, 0.5) !important;
+}
+
+.paused {
+  color: rgba(150, 169, 202, 1);
+  text-shadow: 0px 0px 30px rgba(150, 169, 202, 0.5) !important;
+}
+
+.card-color {
+  background-color: #211936;
+}
+
+.move-arrow:hover .arrow {
+  transform: translateX(-10px);
+}
+
+.move-arrow .arrow {
+  transition: all 0.2s ease-in-out;
+}
+
+.card-color-body ~ .body {
+  background-color: #211936 !important;
+}
