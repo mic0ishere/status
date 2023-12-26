@@ -1,12 +1,15 @@
 module.exports = {
-  darkMode: false, // or 'media' or 'class'
+  content: [
+    './pages/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+  ],
   theme: {
-    extend: {},
-  },
-  variants: {
     extend: {
-      scale: ['hover'],
-    }
+      colors: {
+        primary: "#211936",
+        secondary: "#0d1627"
+      }
+    },
   },
   plugins: [],
 };
