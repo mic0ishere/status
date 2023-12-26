@@ -2,6 +2,7 @@ import * as Statuses from "../components/statuses";
 import React, { useEffect } from "react";
 import Container from "../components/Container";
 import useSWR from "swr";
+import fetcher from "../lib/fetcher";
 
 function doCountdown() {
   const timer = document.querySelector("span#timer");
@@ -11,7 +12,7 @@ function doCountdown() {
     }, (60 - index) * 1000);
   }
 }
-const fetcher = (url) => fetch(url).then((r) => r.json());
+
 function Home() {
   const { data, isValidating } = useSWR(
     `${process.env.NEXT_PUBLIC_DOMAIN_NAME}/api/status`,

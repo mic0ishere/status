@@ -1,19 +1,22 @@
 import { URLSearchParams } from "url";
-let apiData = {};
-let time = 0;
+
+let cachedMonitors = [];
+let timeUpdated = 0;
+
 export default async function statusApi(req, res) {
-  const timeNow = `${Date.now()}`
-  const timeNowFormatted = timeNow.substr(0, timeNow.length - 3)
-  const timeBefore = Number(timeNowFormatted) - 2 * 24 * 60 * 60;
-  if (time < Date.now() - 10 * 1000) {
+  if (timeUpdated < Date.now() - 10 * 1000) {
     const params = new URLSearchParams();
     params.append("response_times", 1);
     params.append("response_times_average", "60");
-    params.append("response_times_start_date", timeBefore);
-    params.append("response_times_end_date", timeNowFormatted);
+    params.append(
+      "response_times_start_date",
+      Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60
+    );
+    params.append("response_times_end_date", Math.floor(Date.now() / 1000));
     params.append("logs", 1);
     params.append("all_time_uptime_ratio", 1);
     params.append("custom_uptime_ratios", "1-7-30");
+
     const request = await fetch(
       `https://api.uptimerobot.com/v2/getMonitors?api_key=${process.env.UPTIMEROBOT_KEY}`,
       {
@@ -25,13 +28,23 @@ export default async function statusApi(req, res) {
         body: params,
       }
     );
-    apiData = await request.json();
-    time = Date.now();
+
+    const json = await request.json();
+
+    if (json.monitors) {
+      cachedMonitors = json.monitors.filter(
+        ({ id }) => !process.env.IGNORED_MONITORS.includes(id)
+      );
+      timeUpdated = Date.now();
+    }
   }
+
+  res.setHeader("Cache-Control", "s-maxage=600");
+
   if (!req.query.monitor) {
-    res.status(200).json({
-      time: time,
-      monitors: apiData.monitors.map(
+    return res.status(200).json({
+      time: timeUpdated,
+      monitors: cachedMonitors.map(
         ({
           friendly_name,
           id,
@@ -56,53 +69,37 @@ export default async function statusApi(req, res) {
         })
       ),
     });
-  } else if (apiData.monitors.some(({ id }) => id == req.query?.monitor)) {
-    const {
-      friendly_name,
-      id,
-      status,
-      url,
-      port,
-      all_time_uptime_ratio,
-      custom_uptime_ratio,
-      response_times,
-      logs,
-    } = apiData.monitors.find(({ id }) => id == req.query?.monitor);
-    const changeValues = (value) => {
-      if (value > 300) value = Math.floor(value / 1.5);
-      if (value > 800) value = Math.floor(value / 2.5);
-      if (value > 1000) {
-        return changeValues(value);
-      }
-      return value;
-    };
-    const noiceMap = response_times.map(({ value, datetime }) => ({
-      value: changeValues(value),
-      datetime,
-    }));
-    res.status(200).json({
-      id,
-      status,
-      name: friendly_name,
-      url: `${url.startsWith("http") ? "" : "http://"}${url}${
-        port && ":"
-      }${port}`,
-      uptime_ratio: {
-        "24H": Number(custom_uptime_ratio.split("-")[0]).toFixed(2),
-        "7D": Number(custom_uptime_ratio.split("-")[1]).toFixed(2),
-        "30D": Number(custom_uptime_ratio.split("-")[2]).toFixed(2),
-        all: Number(all_time_uptime_ratio).toFixed(2),
-      },
-      response_times: noiceMap.length >= 6 ? noiceMap.sort(function (a, b) {
-        const dateA = new Date(Number(a.datetime)),
-          dateB = new Date(Number(b.datetime));
-        return dateA - dateB;
-      }) : null,
-      events: logs,
-    });
-  } else {
-    res.status(200).json({
+  }
+
+  const foundMonitor = cachedMonitors.find(
+    ({ id }) => id == req.query?.monitor
+  );
+  if (!foundMonitor)
+    return res.status(200).json({
       message: "No monitors found",
     });
-  }
+
+  res.status(200).json({
+    id: foundMonitor.id,
+    status: foundMonitor.status,
+    name: foundMonitor.friendly_name,
+    url: `${foundMonitor.url.startsWith("http") ? "" : "https://"}${
+      foundMonitor.url
+    }${foundMonitor.port && ":"}${foundMonitor.port}`,
+    uptime_ratio: {
+      "24H": Number(foundMonitor.custom_uptime_ratio.split("-")[0]).toFixed(2),
+      "7D": Number(foundMonitor.custom_uptime_ratio.split("-")[1]).toFixed(2),
+      "30D": Number(foundMonitor.custom_uptime_ratio.split("-")[2]).toFixed(2),
+      all: Number(foundMonitor.all_time_uptime_ratio).toFixed(2),
+    },
+    response_times:
+      foundMonitor.response_times.length >= 6
+        ? foundMonitor.response_times.sort(function (a, b) {
+            const dateA = new Date(Number(a.datetime)),
+              dateB = new Date(Number(b.datetime));
+            return dateA - dateB;
+          })
+        : null,
+    events: foundMonitor.logs,
+  });
 }

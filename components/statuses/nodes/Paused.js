@@ -1,11 +1,9 @@
-import React from "react";
 import NodeWrapper from "../../NodeWrapper";
 
 function Paused({ properties }) {
   const { url, name, id } = properties;
   return (
-    <NodeWrapper id={id}>
-      <i aria-hidden className="fas fa-circle paused mr-6"></i>
+    <NodeWrapper id={id} className="paused">
       <a
         href={url}
         className="font-semibold hover:text-gray-200"
@@ -13,7 +11,7 @@ function Paused({ properties }) {
       >
         {name}
       </a>
-      &apos;s monitoring is <span className="paused font-bold">paused</span>
+      &apos;s monitoring is <span className="status-text">paused</span>
     </NodeWrapper>
   );
 }

@@ -7,10 +7,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Status | mic0</title>
+        <title>Status</title>
       </Head>
       <Component {...pageProps} />
-      <Script src="https://kit.fontawesome.com/fbbbb0f281.js"></Script>
     </>
   );
 }

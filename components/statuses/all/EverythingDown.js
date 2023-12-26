@@ -1,11 +1,9 @@
-import React from "react";
 import AllWrapper from "../../AllWrapper";
 
 function EverythingDown() {
   return (
-    <AllWrapper>
-      <i aria-hidden className="fas fa-circle down mr-6"></i>All systems are{" "}
-      <span className="down font-bold">down</span>
+    <AllWrapper className="down">
+      All systems are <span className="status-text">down</span>
     </AllWrapper>
   );
 }
